@@ -1,6 +1,7 @@
 spDynLMmod <- function(formula, data = parent.frame(), coords, knots,
                     starting, tuning, priors, cov.model, get.fitted=FALSE,
-                    n.samples,  verbose=TRUE, n.report=100, ...){
+                    n.samples,  verbose=TRUE, n.report=100, radiusbeta0, 
+                    radiusbeta, radiustausq, radiussigmasq, radiusphi, radiussigmaEta, ...){
   
   ####################################################
   ##Check for unused args
@@ -289,7 +290,7 @@ spDynLMmod <- function(formula, data = parent.frame(), coords, knots,
                  beta.0.Norm, sigma.sq.IG, tau.sq.IG, nu.Unif, phi.Unif, sigma.eta.IW,
                  beta.starting, phi.starting, sigma.sq.starting, tau.sq.starting, nu.starting, sigma.eta.starting,
                  phi.tuning, nu.tuning,
-                 cov.model, n.samples, miss, get.fitted, verbose, n.report)   
+                 cov.model, n.samples, miss, get.fitted, verbose, n.report, radiusbeta0, radiusbeta, radiustausq, radiussigmasq, radiusphi, radiussigmaEta)   
   }
   
   run.time <- proc.time() - ptm

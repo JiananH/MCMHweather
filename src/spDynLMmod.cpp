@@ -12,7 +12,8 @@ extern "C" {
   SEXP spDynLMmod(SEXP Y_r, SEXP X_r, SEXP p_r, SEXP n_r, SEXP Nt_r, SEXP coordsD_r,
 	       SEXP beta0Norm_r, SEXP sigmaSqIG_r, SEXP tauSqIG_r, SEXP nuUnif_r, SEXP phiUnif_r, SEXP sigmaEtaIW_r,
 	       SEXP betaStarting_r, SEXP phiStarting_r, SEXP sigmaSqStarting_r, SEXP tauSqStarting_r, SEXP nuStarting_r, SEXP sigmaEtaStarting_r,
-	       SEXP phiTuning_r, SEXP nuTuning_r, SEXP covModel_r, SEXP nSamples_r, SEXP missing_r, SEXP getFitted_r, SEXP verbose_r, SEXP nReport_r){
+	       SEXP phiTuning_r, SEXP nuTuning_r, SEXP covModel_r, SEXP nSamples_r, SEXP missing_r, SEXP getFitted_r, SEXP verbose_r, SEXP nReport_r,
+         SEXP radiusbeta0_r, SEXP radiusbeta_r, SEXP radiustausq_r, SEXP radiussigmasq_r, SEXP radiusphi_r, SEXP radiussigmaEta_r){
 
     /*****************************************
                 Common variables
@@ -260,7 +261,7 @@ extern "C" {
      F77_NAME(dpotrf)(lower, &p, tmp_pp, &p, &info); if(info != 0){error("c++ error: dpotrf3 failed\n");}
      // printf("%f,%f,\n",beta0[0],beta0[1]);
      // mvrnorm(beta0, tmp_p2, tmp_pp, p);
-     
+
      //printf("%f,%f,%f,%f,%f,%f,%f,%f\n",beta0[0],beta0[1],tmp_p2[0],tmp_p2[1],tmp_pp[0],tmp_pp[1],tmp_pp[2],tmp_pp[3]);
      // /************/
      //mvrnorm(&beta[t*p], tmp_p2, tmp_pp, p);
@@ -269,10 +270,14 @@ extern "C" {
      } else {
      	//double radiusbeta0[2]={1.02,0.80};
      	//double radiusbeta0[2]={2.58,2.02};
-     	double radiusbeta0[2]={4.26*2,3.34*2};
+     	//double radiusbeta0[2]={4.26*2,3.34*2};
+      double *radiusbeta0=REAL(radiusbeta0_r);
+
        double *tempbeta0 = (double *) R_alloc(p, sizeof(double));
        int *acceptmarkbeta0 = (int *) R_alloc(p, sizeof(int));
        int sumbeta0=0;
+
+       //printf("%f,%f,\n",radiusbeta0[0],radiusbeta0[1]);
 
        do {
         mvrnorm(tempbeta0, tmp_p2, tmp_pp, p);
@@ -297,8 +302,8 @@ extern "C" {
        beta0[0]=tempbeta0[0];
        beta0[1]=tempbeta0[1];
      }
-     
-       
+
+
        /************/
 
      F77_NAME(dcopy)(&p, beta0, &incOne, &beta0Samples[s*p], &incOne);
@@ -369,10 +374,13 @@ extern "C" {
        //mvrnorm(&beta[t*p], tmp_p2, tmp_pp, p);
        //double radiusbeta[2]={0.26,0.0002};
        //double radiusbeta[2]={0.67,0.0005};
-       double radiusbeta[2]={1.11*2,0.0009*2};
+       //double radiusbeta[2]={1.11*2,0.0009*2};
+       double *radiusbeta=REAL(radiusbeta_r);
        double *tempbeta = (double *) R_alloc(p, sizeof(double));
        int *acceptmarkbeta = (int *) R_alloc(p, sizeof(int));
        int sumbeta=0;
+
+       //printf("%f,%f,\n",radiusbeta[0],radiusbeta[1]);
 
        do {
         mvrnorm(tempbeta, tmp_p2, tmp_pp, p);
@@ -528,11 +536,12 @@ extern "C" {
        //mvrnorm(&beta[t*p], tmp_p2, tmp_pp, p);
        //double radiustausq=0.0203;
        //double radiustausq=0.0516;
-       double radiustausq=0.0852*2;
+       //double radiustausq=0.0852*2;
+       double radiustausq=REAL(radiustausq_r)[0];
        double temptausq;
        int acceptmarktausq=0;
 
-
+       //printf("%f,\n",radiustausq);
        do {
          temptausq=rgamma(tauSqIG[t*2]+n/2.0,1.0/(tauSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n, &incOne)));
             if (((temptausq-theta[t*nTheta+tauSqIndx])*(temptausq-theta[t*nTheta+tauSqIndx]))>(radiustausq*radiustausq)){
@@ -569,10 +578,12 @@ extern "C" {
 
        //double radiussigmasq=0.0586;
        //double radiussigmasq=0.1490;
-       double radiussigmasq=0.2466*2;
+       //double radiussigmasq=0.2466*2;
+       double radiussigmasq=REAL(radiussigmasq_r)[0];
        double tempsigmasq;
        int acceptmarksigmasq=0;
 
+       printf("%f,\n",radiussigmasq);
 
        do {
          tempsigmasq=rgamma(sigmaSqIG[t*2]+n/2.0, 1.0/(sigmaSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n2, &incOne)*theta[t*nTheta+sigmaSqIndx]));
@@ -659,9 +670,12 @@ extern "C" {
        /************/
        //double radiusphi=0.0002;
        //double radiusphi=0.0005;
-       double radiusphi=0.0009*2;
+       //double radiusphi=0.0009*2;
+       double radiusphi=REAL(radiusphi_r)[0];
        double tempphi;
        int acceptmarkphi=0;
+
+       //printf("%f,\n",radiusphi);
 
        if(t > 0){
        	 for(i = 0; i < n; i++){
@@ -721,7 +735,7 @@ extern "C" {
 	     acceptmarkphi=0;
        if(((tempphi-theta[t*nTheta+phiIndx])*(tempphi-theta[t*nTheta+phiIndx]))>(radiusphi*radiusphi)){
               acceptmarkphi=1;
-              
+
             } else {
               acceptmarkphi=0;
             }
@@ -778,12 +792,15 @@ extern "C" {
      double *tempsigmaEta = (double *) R_alloc(pp, sizeof(double));
      //double radiussigmaEta=171.67;
      //double radiussigmaEta=442.66;
-     double radiussigmaEta=744.82*2;
+     //double radiussigmaEta=744.82*2;
+     double radiussigmaEta=REAL(radiussigmaEta_r)[0];
      int acceptmarksigmaEta=0;
+
+     //printf("%f,\n",radiussigmaEta);
 
      do {
      	rwish(tmp_pp, SigmaEtaIW_df+Nt, p, tempsigmaEta, tmp_pp2, 1);
-     	int sum=0;
+     	double sum=0;
 
      	for (int dim=0; dim<pp; dim++){
      		sum=sum+(tempsigmaEta[dim]-sigmaEta[dim])*(tempsigmaEta[dim]-sigmaEta[dim]);
