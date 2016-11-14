@@ -543,7 +543,7 @@ extern "C" {
 
        //printf("%f,\n",radiustausq);
        do {
-         temptausq=rgamma(tauSqIG[t*2]+n/2.0,1.0/(tauSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n, &incOne)));
+         temptausq=1.0/rgamma(tauSqIG[t*2]+n/2.0,1.0/(tauSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n, &incOne)));
             if (((temptausq-theta[t*nTheta+tauSqIndx])*(temptausq-theta[t*nTheta+tauSqIndx]))>(radiustausq*radiustausq)){
               acceptmarktausq=1;
             } else {
@@ -553,7 +553,7 @@ extern "C" {
 
 
 
-       theta[t*nTheta+tauSqIndx] = 1.0/temptausq;
+       theta[t*nTheta+tauSqIndx] = temptausq;
 
        /************/
 
@@ -583,10 +583,10 @@ extern "C" {
        double tempsigmasq;
        int acceptmarksigmasq=0;
 
-       printf("%f,\n",radiussigmasq);
+       //printf("%f,\n",radiussigmasq);
 
        do {
-         tempsigmasq=rgamma(sigmaSqIG[t*2]+n/2.0, 1.0/(sigmaSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n2, &incOne)*theta[t*nTheta+sigmaSqIndx]));
+         tempsigmasq=1.0/rgamma(sigmaSqIG[t*2]+n/2.0, 1.0/(sigmaSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n2, &incOne)*theta[t*nTheta+sigmaSqIndx]));
             if (((tempsigmasq-theta[t*nTheta+sigmaSqIndx])*(tempsigmasq-theta[t*nTheta+sigmaSqIndx]))>(radiussigmasq*radiussigmasq)){
               acceptmarksigmasq=1;
             } else {
@@ -596,7 +596,7 @@ extern "C" {
 
 
 
-       theta[t*nTheta+sigmaSqIndx] = 1.0/tempsigmasq;
+       theta[t*nTheta+sigmaSqIndx] = tempsigmasq;
 
        /************/
 
