@@ -1,5 +1,5 @@
-Package: MCMHweather
-Version: 0.1.1
+Package: GMCMH
+Version: 0.1.2
 Date: 2015-1-26
 Title: Univariate and Multivariate Spatial-temporal Modeling
 Author: Andrew O. Finley <finleya@msu.edu>, Sudipto Banerjee
