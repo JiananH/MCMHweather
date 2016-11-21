@@ -7,14 +7,12 @@
 #include <R_ext/BLAS.h>
 #include "util.h"
 
-
 extern "C" {
 
   SEXP spDynLMmodgone(SEXP Y_r, SEXP X_r, SEXP p_r, SEXP n_r, SEXP Nt_r, SEXP coordsD_r,
-         SEXP beta0Norm_r, SEXP sigmaSqIG_r, SEXP tauSqIG_r, SEXP nuUnif_r, SEXP phiUnif_r, SEXP sigmaEtaIW_r,
-         SEXP betaStarting_r, SEXP phiStarting_r, SEXP sigmaSqStarting_r, SEXP tauSqStarting_r, SEXP nuStarting_r, SEXP sigmaEtaStarting_r,
-         SEXP phiTuning_r, SEXP nuTuning_r, SEXP covModel_r, SEXP nSamples_r, SEXP missing_r, SEXP getFitted_r, SEXP verbose_r, SEXP nReport_r,
-         SEXP radiusbeta0_r, SEXP radiusbeta_r, SEXP radiustausq_r, SEXP radiussigmasq_r, SEXP radiusphi_r, SEXP radiussigmaEta_r, SEXP prob_r){
+	       SEXP beta0Norm_r, SEXP sigmaSqIG_r, SEXP tauSqIG_r, SEXP nuUnif_r, SEXP phiUnif_r, SEXP sigmaEtaIW_r,
+	       SEXP betaStarting_r, SEXP phiStarting_r, SEXP sigmaSqStarting_r, SEXP tauSqStarting_r, SEXP nuStarting_r, SEXP sigmaEtaStarting_r,
+	       SEXP phiTuning_r, SEXP nuTuning_r, SEXP covModel_r, SEXP nSamples_r, SEXP missing_r, SEXP getFitted_r, SEXP verbose_r, SEXP nReport_r, SEXP prob_r){
 
     /*****************************************
                 Common variables
@@ -46,7 +44,7 @@ extern "C" {
     int Ntp = Nt*p;
     int nn = n*n;
     int Ntn = Nt*n;
-    double prob = REAL(prob_r)[0];
+    double prob = prob;
 
     double *coordsD = REAL(coordsD_r);
 
@@ -82,8 +80,8 @@ extern "C" {
     bool anyMissing = false;
     for(i = 0; i < Ntn; i++){
       if(missing[i] == 1){
-  nMissing++;
-  anyMissing = true;
+	nMissing++;
+	anyMissing = true;
       }
     }
 
@@ -106,15 +104,15 @@ extern "C" {
       Rprintf("\n");
 
       for(i = 0, j=1; i < Nt; i++, j++){
-  Rprintf("\tsigma.sq_t=%i IG hyperpriors shape=%.5f and scale=%.5f\n", j, sigmaSqIG[i*2], sigmaSqIG[i*2+1]);
+	Rprintf("\tsigma.sq_t=%i IG hyperpriors shape=%.5f and scale=%.5f\n", j, sigmaSqIG[i*2], sigmaSqIG[i*2+1]);
 
-  Rprintf("\ttau.sq_t=%i IG hyperpriors shape=%.5f and scale=%.5f\n", j, tauSqIG[i*2], tauSqIG[i*2+1]);
+	Rprintf("\ttau.sq_t=%i IG hyperpriors shape=%.5f and scale=%.5f\n", j, tauSqIG[i*2], tauSqIG[i*2+1]);
 
-  Rprintf("\tphi_t=%i Unif hyperpriors a=%.5f and b=%.5f\n", j, phiUnif[i*2], phiUnif[i*2+1]);
-  if(covModel == "matern"){
-    Rprintf("\tnu_t=%i Unif hyperpriors a=%.5f and b=%.5f\n", j, nuUnif[i*2], nuUnif[i*2+1]);
-  }
-  Rprintf("\t---\n");
+	Rprintf("\tphi_t=%i Unif hyperpriors a=%.5f and b=%.5f\n", j, phiUnif[i*2], phiUnif[i*2+1]);
+	if(covModel == "matern"){
+	  Rprintf("\tnu_t=%i Unif hyperpriors a=%.5f and b=%.5f\n", j, nuUnif[i*2], nuUnif[i*2+1]);
+	}
+	Rprintf("\t---\n");
       }
     }
 
@@ -154,7 +152,7 @@ extern "C" {
       theta[nTheta*i+phiIndx] = logit(REAL(phiStarting_r)[i], phiUnif[i*2], phiUnif[i*2+1]);
 
       if(covModel == "matern"){
-  theta[nTheta*i+nuIndx] = logit(REAL(nuStarting_r)[i], nuUnif[i*2], nuUnif[i*2+1]);
+	theta[nTheta*i+nuIndx] = logit(REAL(nuStarting_r)[i], nuUnif[i*2], nuUnif[i*2+1]);
       }
     }
 
@@ -171,7 +169,7 @@ extern "C" {
       phiTuning[i] = REAL(phiTuning_r)[i];
 
       if(covModel == "matern"){
-  nuTuning[i] = REAL(nuTuning_r)[i];
+	nuTuning[i] = REAL(nuTuning_r)[i];
       }
     }
 
@@ -268,23 +266,21 @@ extern "C" {
      // /************/
      //mvrnorm(&beta[t*p], tmp_p2, tmp_pp, p);
      if (s==0){
-      mvrnorm(beta0, tmp_p2, tmp_pp, p);
+     	mvrnorm(beta0, tmp_p2, tmp_pp, p);
      } else {
-
-       double *radiusbeta0=REAL(radiusbeta0_r);
+     	//double radiusbeta0[2]={1.02,0.80};
+     	//double radiusbeta0[2]={2.58,2.02};
+     	double radiusbeta0[2]={4.26*2,3.34*2};
        double *tempbeta0 = (double *) R_alloc(p, sizeof(double));
        int *acceptmarkbeta0 = (int *) R_alloc(p, sizeof(int));
        int sumbeta0=0;
-       int acceptindicator=0;
- 
-       //propose a new value
+
        do {
         mvrnorm(tempbeta0, tmp_p2, tmp_pp, p);
          for (int dim=0; dim<p; dim++){
            acceptmarkbeta0[dim]=0;
          }
           for (int dim=0; dim<p; dim++){
-
             if (((tempbeta0[dim]-beta0[dim])*(tempbeta0[dim]-beta0[dim]))>(radiusbeta0[dim]*radiusbeta0[dim])){
               acceptmarkbeta0[dim]=1;
             } else {
@@ -294,66 +290,14 @@ extern "C" {
             for (int dim=0; dim<p; dim++){
               sumbeta0=sumbeta0+acceptmarkbeta0[dim];
             }
-
-            if (sumbeta0==0 && runif(0.0,1.0)<prob){
-              acceptindicator=1;
-            } else if(sumbeta0>0){
-              acceptindicator=1;
-            } else {
-              acceptindicator=0;
-            }
             //printf("%f,%f,%d\n",tempbeta0[0],tempbeta0[1],sumbeta0);
          }
-       }while(acceptindicator==0);
-         beta0[0]=tempbeta0[0];
-         beta0[1]=tempbeta0[1];
+       }while(sumbeta0==0);
 
+
+       beta0[0]=tempbeta0[0];
+       beta0[1]=tempbeta0[1];
      }
-
-       //compare with acceptance probability
-       // if (sumbeta0==0){
-       //  beta0[0]=tempbeta0[0];
-       //  beta0[1]=tempbeta0[1];
-       // } else {
-       //  double *lowercurrent = (double *) R_alloc(p, sizeof(double));
-       //  double *uppercurrent = (double *) R_alloc(p, sizeof(double));
-       //  double *lowerpropose = (double *) R_alloc(p, sizeof(double));
-       //  double *upperpropose = (double *) R_alloc(p, sizeof(double));
-       //  int *intin = (int *) R_alloc(p, sizeof(int));
-       //  for (int dim=0; dim<p; dim++){
-       //        lowercurrent[dim]=beta0[dim]-radiusbeta0[dim];
-       //        uppercurrent[dim]=beta0[dim]+radiusbeta0[dim];
-       //        lowerpropose[dim]=tempbeta0[dim]-radiusbeta0[dim];
-       //        upperpropose[dim]=tempbeta0[dim]+radiusbeta0[dim];
-       //        intin[dim]=2;
-       //      }
-       //
-       //
-       //      int nop=2;
-       //      int *pnop = &nop;
-       //      int maxipts=25000;
-       //      int nu=0;
-       //      int *pnu=&nu;
-       //      int *pmaxipts=&maxipts;
-       //      double abseps=0.001;
-       //      double *pabseps=&abseps;
-       //      double releps=0.0;
-       //      double *preleps=&releps;
-       //      double error=0.0;
-       //      double *perror=&error;
-       //      double value=0.0;
-       //      double *pvalue=&value;
-       //      int inform=0;
-       //      int *pinform=&inform;
-       //      int rnd=1;
-       //      int *prnd=&rnd;
-       //
-       //
-       //      C_mvtdst(pnop,pnu,lowercurrent,uppercurrent,intin,sigmaEta,beta0,pmaxipts,pabseps,preleps,perror,pvalue,pinform,prnd);
-       //
-       // // acceptance=1;
-       // }
-     
 
 
        /************/
@@ -365,19 +309,19 @@ extern "C" {
      ////////////////////
      if(anyMissing || getFitted){
        for(t = 0, j = 0; t < Nt; t++){
-   F77_NAME(dgemv)(ytran, &p, &n, &one, &X[t*n*p], &p, &beta[t*p], &incOne, &zero, tmp_n3, &incOne);
-   for(i = 0; i < n; i++, j++){
-     if(missing[j] == 1){
-       Y[n*t+i] = rnorm(tmp_n3[i] + u[n*t+i], sqrt(theta[t*nTheta+tauSqIndx]));
-       if(getFitted){
-         ySamples[s*Ntn+t*n+i] = Y[n*t+i];
-       }
-     }else{
-       if(getFitted){
-         ySamples[s*Ntn+t*n+i] = rnorm(tmp_n3[i] + u[n*t+i], sqrt(theta[t*nTheta+tauSqIndx]));
-       }
-     }
-   }
+	 F77_NAME(dgemv)(ytran, &p, &n, &one, &X[t*n*p], &p, &beta[t*p], &incOne, &zero, tmp_n3, &incOne);
+	 for(i = 0; i < n; i++, j++){
+	   if(missing[j] == 1){
+	     Y[n*t+i] = rnorm(tmp_n3[i] + u[n*t+i], sqrt(theta[t*nTheta+tauSqIndx]));
+	     if(getFitted){
+	       ySamples[s*Ntn+t*n+i] = Y[n*t+i];
+	     }
+	   }else{
+	     if(getFitted){
+	       ySamples[s*Ntn+t*n+i] = rnorm(tmp_n3[i] + u[n*t+i], sqrt(theta[t*nTheta+tauSqIndx]));
+	     }
+	   }
+	 }
        }
      }
 
@@ -389,7 +333,7 @@ extern "C" {
        //Sigma_Beta_t
        F77_NAME(dcopy)(&pp, sigmaEta, &incOne, tmp_pp, &incOne);
        if(t < (Nt-1)){
-   F77_NAME(dscal)(&pp, &two, tmp_pp, &incOne);
+	 F77_NAME(dscal)(&pp, &two, tmp_pp, &incOne);
        }
 
        tmp = 1.0/theta[t*nTheta+tauSqIndx];
@@ -400,20 +344,20 @@ extern "C" {
 
        //mu_Beta_t
        for(i = 0; i < n; i++){
-   tmp_n[i] = (Y[n*t+i] - u[n*t+i])*tmp;
+	 tmp_n[i] = (Y[n*t+i] - u[n*t+i])*tmp;
        }
        F77_NAME(dgemv)(ntran, &p, &n, &one, &X[t*n*p], &p, tmp_n, &incOne, &zero, tmp_p, &incOne);
 
        if(t == 0){
-   for(i = 0; i < p; i++){
-     tmp_p2[i] = beta0[i]+beta[p*(t+1)+i];
-   }
+	 for(i = 0; i < p; i++){
+	   tmp_p2[i] = beta0[i]+beta[p*(t+1)+i];
+	 }
        }if(t == (Nt-1)){
-   F77_NAME(dcopy)(&p, &beta[p*(t-1)], &incOne, tmp_p2, &incOne);
+	 F77_NAME(dcopy)(&p, &beta[p*(t-1)], &incOne, tmp_p2, &incOne);
        }else{
-   for(i = 0; i < p; i++){
-     tmp_p2[i] = beta[p*(t-1)+i]+beta[p*(t+1)+i];
-   }
+	 for(i = 0; i < p; i++){
+	   tmp_p2[i] = beta[p*(t-1)+i]+beta[p*(t+1)+i];
+	 }
        }
 
        F77_NAME(dsymv)(lower, &p, &one, sigmaEta, &p, tmp_p2, &incOne, &one, tmp_p, &incOne);
@@ -423,14 +367,13 @@ extern "C" {
 
 
        /************/
-
-       double *radiusbeta=REAL(radiusbeta_r);
+       //mvrnorm(&beta[t*p], tmp_p2, tmp_pp, p);
+       //double radiusbeta[2]={0.26,0.0002};
+       //double radiusbeta[2]={0.67,0.0005};
+       double radiusbeta[2]={1.11*2,0.0009*2};
        double *tempbeta = (double *) R_alloc(p, sizeof(double));
        int *acceptmarkbeta = (int *) R_alloc(p, sizeof(int));
        int sumbeta=0;
-       int acceptindicatorbeta=0;
-
-       //printf("%f,%f,\n",radiusbeta[0],radiusbeta[1]);
 
        do {
         mvrnorm(tempbeta, tmp_p2, tmp_pp, p);
@@ -447,21 +390,9 @@ extern "C" {
             for (int dim=0; dim<p; dim++){
               sumbeta=sumbeta+acceptmarkbeta[dim];
             }
-
-            for (int dim=0; dim<p; dim++){
-              sumbeta=sumbeta+acceptmarkbeta[dim];
-            }
-
-            if (sumbeta==0 && runif(0.0,1.0)<prob){
-              acceptindicatorbeta=1;
-            } else if(sumbeta>0){
-              acceptindicatorbeta=1;
-            } else {
-              acceptindicatorbeta=0;
-            }
             //printf("%d,%d,%d\n",acceptmark[0],acceptmark[1],sum);
          }
-       }while(acceptindicatorbeta==0);
+       }while(sumbeta==0);
 
 
        beta[t*p]=tempbeta[0];
@@ -475,81 +406,91 @@ extern "C" {
        gamma[0] = theta[t*nTheta+sigmaSqIndx];
        gamma[1] = logitInv(theta[t*nTheta+phiIndx], phiUnif[t*2], phiUnif[t*2+1]);
        if(covModel == "matern"){
-         gamma[2] = logitInv(theta[t*nTheta+nuIndx], nuUnif[t*2], nuUnif[t*2+1]);
+       	 gamma[2] = logitInv(theta[t*nTheta+nuIndx], nuUnif[t*2], nuUnif[t*2+1]);
        }
-
+       //C=D_t
        spCovLT(coordsD, n, gamma, covModel, C);
        //printf("%d,%d,\n",C[0],C[1]);
 
        F77_NAME(dpotrf)(lower, &n, C, &n, &info); if(info != 0){error("c++ error: dpotrf6 failed\n");}
        F77_NAME(dpotri)(lower, &n, C, &n, &info); if(info != 0){error("c++ error: dpotri failed\n");}
 
+       //tmp_n3=X_t^T*beta_t
        F77_NAME(dgemv)(ytran, &p, &n, &one, &X[t*n*p], &p, &beta[t*p], &incOne, &zero, tmp_n3, &incOne);
 
        if(t < (Nt-1)){
 
-         //t+1
-         gamma[0] = theta[(t+1)*nTheta+sigmaSqIndx];
-         gamma[1] = logitInv(theta[(t+1)*nTheta+phiIndx], phiUnif[(t+1)*2], phiUnif[(t+1)*2+1]);
+       	 //t+1
+       	 gamma[0] = theta[(t+1)*nTheta+sigmaSqIndx];
+       	 gamma[1] = logitInv(theta[(t+1)*nTheta+phiIndx], phiUnif[(t+1)*2], phiUnif[(t+1)*2+1]);
          if(covModel == "matern"){
-           gamma[2] = logitInv(theta[(t+1)*nTheta+nuIndx], nuUnif[(t+1)*2], nuUnif[(t+1)*2+1]);
-         }
+       	   gamma[2] = logitInv(theta[(t+1)*nTheta+nuIndx], nuUnif[(t+1)*2], nuUnif[(t+1)*2+1]);
+       	 }
+         //C2=D_(t+1)
+       	 spCovLT(coordsD, n, gamma, covModel, C2);
 
-         spCovLT(coordsD, n, gamma, covModel, C2);
+       	 F77_NAME(dpotrf)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotrf7 failed\n");}
+       	 F77_NAME(dpotri)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotri failed\n");}
 
-         F77_NAME(dpotrf)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotrf7 failed\n");}
-         F77_NAME(dpotri)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotri failed\n");}
+       	 //mu
+         //tmp_n=u_(t+1)*D_(t+1)
+       	 F77_NAME(dsymv)(lower, &n, &one, C2, &n, &u[(t+1)*n], &incOne, &zero, tmp_n, &incOne);
 
-         //mu
-         F77_NAME(dsymv)(lower, &n, &one, C2, &n, &u[(t+1)*n], &incOne, &zero, tmp_n, &incOne);
+       	 if(t > 0){
+          //tmp_n=u_(t-1)*D_t+tmp_n
+       	   F77_NAME(dsymv)(lower, &n, &one, C, &n, &u[(t-1)*n], &incOne, &one, tmp_n, &incOne);
+       	 }
 
-         if(t > 0){
-           F77_NAME(dsymv)(lower, &n, &one, C, &n, &u[(t-1)*n], &incOne, &one, tmp_n, &incOne);
-         }
+         //tmp_n=tmp_n+yt-X_t^T*beta_t*1/tau_t^2
+       	 for(i = 0; i < n; i++){
 
-         for(i = 0; i < n; i++){
-           tmp_n[i] += (Y[t*n+i] - tmp_n3[i])*tmp;
-         }
+       	   tmp_n[i] += (Y[t*n+i] - tmp_n3[i])*tmp;
+       	 }
 
-         //sigma
-         F77_NAME(daxpy)(&nn, &one, C, &incOne, C2, &incOne);
+       	 //sigma
 
-         for(i = 0; i < n; i++){
-           C2[i*n+i] += tmp;
-         }
+         //C2=C+C2=D_t+D_(t+1)
+       	 F77_NAME(daxpy)(&nn, &one, C, &incOne, C2, &incOne);
 
-         F77_NAME(dpotrf)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotrf8 failed\n");}
-         F77_NAME(dpotri)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotri failed\n");}
+         //C2[i,i]=C2[i,i]+1/tau_t^2
+       	 for(i = 0; i < n; i++){
+       	   C2[i*n+i] += tmp;
+       	 }
 
-         //finish mu
-         F77_NAME(dsymv)(lower, &n, &one, C2, &n, tmp_n, &incOne, &zero, tmp_n2, &incOne);
+       	 F77_NAME(dpotrf)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotrf8 failed\n");}
+       	 F77_NAME(dpotri)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotri failed\n");}
 
-         F77_NAME(dpotrf)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotrf9 failed\n");}
-         mvrnorm(&u[t*n], tmp_n2, C2, n);
+       	 //finish mu
+
+         //tmp_n2=C2*tmp_n
+       	 F77_NAME(dsymv)(lower, &n, &one, C2, &n, tmp_n, &incOne, &zero, tmp_n2, &incOne);
+
+       	 F77_NAME(dpotrf)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotrf9 failed\n");}
+       	 mvrnorm(&u[t*n], tmp_n2, C2, n);
 
        }else{//t==Nt
 
-         F77_NAME(dcopy)(&nn, C, &incOne, C2, &incOne);
+       	 F77_NAME(dcopy)(&nn, C, &incOne, C2, &incOne);
 
-         //mu
-         F77_NAME(dsymv)(lower, &n, &one, C2, &n, &u[(t-1)*n], &incOne, &zero, tmp_n, &incOne);
+       	 //mu
+       	 F77_NAME(dsymv)(lower, &n, &one, C2, &n, &u[(t-1)*n], &incOne, &zero, tmp_n, &incOne);
 
-         for(i = 0; i < n; i++){
-           tmp_n[i] += (Y[t*n+i] - tmp_n3[i])*tmp;
-         }
+       	 for(i = 0; i < n; i++){
+       	   tmp_n[i] += (Y[t*n+i] - tmp_n3[i])*tmp;
+       	 }
 
-         //sigma
-         for(i = 0; i < n; i++){
-           C2[i*n+i] += tmp;
-         }
+       	 //sigma
+       	 for(i = 0; i < n; i++){
+       	   C2[i*n+i] += tmp;
+       	 }
 
-         F77_NAME(dpotrf)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotrf10 failed\n");}
-         F77_NAME(dpotri)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotri failed\n");}
+       	 F77_NAME(dpotrf)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotrf10 failed\n");}
+       	 F77_NAME(dpotri)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotri failed\n");}
 
-         //finish mu
-         F77_NAME(dsymv)(lower, &n, &one, C2, &n, tmp_n, &incOne, &zero, tmp_n2, &incOne);
+       	 //finish mu
+       	 F77_NAME(dsymv)(lower, &n, &one, C2, &n, tmp_n, &incOne, &zero, tmp_n2, &incOne);
 
-         F77_NAME(dpotrf)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotrf11 failed\n");}
+       	 F77_NAME(dpotrf)(lower, &n, C2, &n, &info); if(info != 0){error("c++ error: dpotrf11 failed\n");}
 
 
          /************/
@@ -589,33 +530,32 @@ extern "C" {
        //update tau^2
        ////////////////////
        for(i = 0; i < n; i++){
-         tmp_n[i] = Y[t*n+i] - tmp_n3[i] - u[t*n+i];
+       	 tmp_n[i] = Y[t*n+i] - tmp_n3[i] - u[t*n+i];
        }
        //theta[t*nTheta+tauSqIndx] = 1.0/rgamma(tauSqIG[t*2]+n/2.0,
-        //              1.0/(tauSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n, &incOne)));
+       	//				      1.0/(tauSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n, &incOne)));
 
        /************/
-
-       double radiustausq=REAL(radiustausq_r)[0];
+       //mvrnorm(&beta[t*p], tmp_p2, tmp_pp, p);
+       //double radiustausq=0.0203;
+       //double radiustausq=0.0516;
+       double radiustausq=0.0852*2;
        double temptausq;
        int acceptmarktausq=0;
 
-       //printf("%f,\n",radiustausq);
+
        do {
-         temptausq=1.0/rgamma(tauSqIG[t*2]+n/2.0,1.0/(tauSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n, &incOne)));
+         temptausq=rgamma(tauSqIG[t*2]+n/2.0,1.0/(tauSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n, &incOne)));
             if (((temptausq-theta[t*nTheta+tauSqIndx])*(temptausq-theta[t*nTheta+tauSqIndx]))>(radiustausq*radiustausq)){
               acceptmarktausq=1;
             } else {
-              if (runif(0.0,1.0)<prob){
-                acceptmarktausq=1;
-              } else{
-                acceptmarktausq=0;
-              }
+              acceptmarktausq=0;
             }
-              
        }  while(acceptmarktausq==0);
 
-       theta[t*nTheta+tauSqIndx] = temptausq;
+
+
+       theta[t*nTheta+tauSqIndx] = 1.0/temptausq;
 
        /************/
 
@@ -625,44 +565,38 @@ extern "C" {
        ////////////////////
        F77_NAME(dcopy)(&n, &u[n*t], &incOne, tmp_n, &incOne);
        if(t > 0){
-         for(i = 0; i < n; i++){
-           tmp_n[i] = tmp_n[i] - u[n*(t-1)+i];
-         }
+       	 for(i = 0; i < n; i++){
+       	   tmp_n[i] = tmp_n[i] - u[n*(t-1)+i];
+       	 }
        }
 
        F77_NAME(dsymv)(lower, &n, &one, C, &n, tmp_n, &incOne, &zero, tmp_n2, &incOne);
 
        //theta[t*nTheta+sigmaSqIndx] = 1.0/rgamma(sigmaSqIG[t*2]+n/2.0,
-       //           1.0/(sigmaSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n2, &incOne)*theta[t*nTheta+sigmaSqIndx]));
+       //						1.0/(sigmaSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n2, &incOne)*theta[t*nTheta+sigmaSqIndx]));
 
 
        /************/
 
        //double radiussigmasq=0.0586;
        //double radiussigmasq=0.1490;
-       //double radiussigmasq=0.2466*2;
-       double radiussigmasq=REAL(radiussigmasq_r)[0];
+       double radiussigmasq=0.2466*2;
        double tempsigmasq;
        int acceptmarksigmasq=0;
 
-       //printf("%f,\n",radiussigmasq);
 
        do {
-         tempsigmasq=1.0/rgamma(sigmaSqIG[t*2]+n/2.0, 1.0/(sigmaSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n2, &incOne)*theta[t*nTheta+sigmaSqIndx]));
+         tempsigmasq=rgamma(sigmaSqIG[t*2]+n/2.0, 1.0/(sigmaSqIG[t*2+1]+0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n2, &incOne)*theta[t*nTheta+sigmaSqIndx]));
             if (((tempsigmasq-theta[t*nTheta+sigmaSqIndx])*(tempsigmasq-theta[t*nTheta+sigmaSqIndx]))>(radiussigmasq*radiussigmasq)){
               acceptmarksigmasq=1;
             } else {
-              if (runif(0.0,1.0)<prob){
-                acceptmarksigmasq=1;
-              } else{
-                acceptmarksigmasq=0;
-              }
+              acceptmarksigmasq=0;
             }
        }  while(acceptmarksigmasq==0);
 
 
 
-       theta[t*nTheta+sigmaSqIndx] = tempsigmasq;
+       theta[t*nTheta+sigmaSqIndx] = 1.0/tempsigmasq;
 
        /************/
 
@@ -670,18 +604,18 @@ extern "C" {
        //update phi
        ////////////////////
        // if(t > 0){
-       //    for(i = 0; i < n; i++){
-       //      tmp_n[i] = u[n*t+i]-u[n*(t-1)+i];
-       //    }
+       // 	 for(i = 0; i < n; i++){
+       // 	   tmp_n[i] = u[n*t+i]-u[n*(t-1)+i];
+       // 	 }
        // }else{
-       //    F77_NAME(dcopy)(&n, &u[n*t], &incOne, tmp_n, &incOne);
+       // 	 F77_NAME(dcopy)(&n, &u[n*t], &incOne, tmp_n, &incOne);
        // }
 
        // //current
        // gamma[0] = theta[t*nTheta+sigmaSqIndx];
        // gamma[1] = logitInv(theta[t*nTheta+phiIndx], phiUnif[t*2], phiUnif[t*2+1]);
        // if(covModel == "matern"){
-       //    gamma[2] = logitInv(theta[t*nTheta+nuIndx], nuUnif[t*2], nuUnif[t*2+1]);
+       // 	 gamma[2] = logitInv(theta[t*nTheta+nuIndx], nuUnif[t*2], nuUnif[t*2+1]);
        // }
 
        // spCovLT(coordsD, n, gamma, covModel, C);
@@ -696,14 +630,14 @@ extern "C" {
 
        // logPost += log(gamma[1] - phiUnif[t*2]) + log(phiUnif[t*2+1] - gamma[1]);
        // if(covModel == "matern"){
-       //    logPost += log(gamma[2] - nuUnif[t*2]) + log(nuUnif[t*2+1] - gamma[2]);
+       // 	 logPost += log(gamma[2] - nuUnif[t*2]) + log(nuUnif[t*2+1] - gamma[2]);
        // }
 
        // //cand
        // gamma[0] = theta[t*nTheta+sigmaSqIndx];
        // gamma[1] = logitInv(rnorm(theta[t*nTheta+phiIndx], phiTuning[t]), phiUnif[t*2], phiUnif[t*2+1]);
        // if(covModel == "matern"){
-       //    gamma[2] = logitInv(rnorm(theta[t*nTheta+nuIndx], nuTuning[t]), nuUnif[t*2], nuUnif[t*2+1]);
+       // 	 gamma[2] = logitInv(rnorm(theta[t*nTheta+nuIndx], nuTuning[t]), nuUnif[t*2], nuUnif[t*2+1]);
        // }
 
        // spCovLT(coordsD, n, gamma, covModel, C);
@@ -718,42 +652,41 @@ extern "C" {
 
        // logPostCand += log(gamma[1] - phiUnif[t*2]) + log(phiUnif[t*2+1] - gamma[1]);
        // if(covModel == "matern"){
-       //    logPostCand += log(gamma[2] - nuUnif[t*2]) + log(nuUnif[t*2+1] - gamma[2]);
+       // 	 logPostCand += log(gamma[2] - nuUnif[t*2]) + log(nuUnif[t*2+1] - gamma[2]);
        // }
 
        // logMHRatio = logPostCand - logPost;
 
        // if(runif(0.0,1.0) <= exp(logMHRatio)){
 
-       //    theta[t*nTheta+phiIndx] = logit(gamma[1], phiUnif[t*2], phiUnif[t*2+1]);
-       //    if(covModel == "matern"){
-       //      theta[t*nTheta+nuIndx] = logit(gamma[2], nuUnif[t*2], nuUnif[t*2+1]);
-       //    }
-       //    accept++;
-       //    batchAccept++;
+       // 	 theta[t*nTheta+phiIndx] = logit(gamma[1], phiUnif[t*2], phiUnif[t*2+1]);
+       // 	 if(covModel == "matern"){
+       // 	   theta[t*nTheta+nuIndx] = logit(gamma[2], nuUnif[t*2], nuUnif[t*2+1]);
+       // 	 }
+       // 	 accept++;
+       // 	 batchAccept++;
        // }
 
        /************/
-
-       double radiusphi=REAL(radiusphi_r)[0];
+       //double radiusphi=0.0002;
+       //double radiusphi=0.0005;
+       double radiusphi=0.0009*2;
        double tempphi;
        int acceptmarkphi=0;
 
-       //printf("%f,\n",radiusphi);
-
        if(t > 0){
-         for(i = 0; i < n; i++){
-           tmp_n[i] = u[n*t+i]-u[n*(t-1)+i];
-         }
+       	 for(i = 0; i < n; i++){
+       	   tmp_n[i] = u[n*t+i]-u[n*(t-1)+i];
+       	 }
        }else{
-         F77_NAME(dcopy)(&n, &u[n*t], &incOne, tmp_n, &incOne);
+       	 F77_NAME(dcopy)(&n, &u[n*t], &incOne, tmp_n, &incOne);
        }
 
        //current
        gamma[0] = theta[t*nTheta+sigmaSqIndx];
        gamma[1] = logitInv(theta[t*nTheta+phiIndx], phiUnif[t*2], phiUnif[t*2+1]);
        if(covModel == "matern"){
-         gamma[2] = logitInv(theta[t*nTheta+nuIndx], nuUnif[t*2], nuUnif[t*2+1]);
+       	 gamma[2] = logitInv(theta[t*nTheta+nuIndx], nuUnif[t*2], nuUnif[t*2+1]);
        }
 
        spCovLT(coordsD, n, gamma, covModel, C);
@@ -768,44 +701,40 @@ extern "C" {
 
        logPost += log(gamma[1] - phiUnif[t*2]) + log(phiUnif[t*2+1] - gamma[1]);
        if(covModel == "matern"){
-         logPost += log(gamma[2] - nuUnif[t*2]) + log(nuUnif[t*2+1] - gamma[2]);
+       	 logPost += log(gamma[2] - nuUnif[t*2]) + log(nuUnif[t*2+1] - gamma[2]);
        }
 
        //cand
        do{
-         gamma[0] = theta[t*nTheta+sigmaSqIndx];
-         gamma[1] = logitInv(rnorm(theta[t*nTheta+phiIndx], phiTuning[t]), phiUnif[t*2], phiUnif[t*2+1]);
+	       gamma[0] = theta[t*nTheta+sigmaSqIndx];
+	       gamma[1] = logitInv(rnorm(theta[t*nTheta+phiIndx], phiTuning[t]), phiUnif[t*2], phiUnif[t*2+1]);
 
-         spCovLT(coordsD, n, gamma, covModel, C);
+	       spCovLT(coordsD, n, gamma, covModel, C);
 
-         logDetCand = 0;
-         F77_NAME(dpotrf)(lower, &n, C, &n, &info); if(info != 0){error("c++ error: dpotrf13 failed\n");}
-         for(i = 0; i < n; i++) logDetCand += 2*log(C[i*n+i]);
-         F77_NAME(dpotri)(lower, &n, C, &n, &info); if(info != 0){error("c++ error: dpotri failed\n");}
+	       logDetCand = 0;
+	       F77_NAME(dpotrf)(lower, &n, C, &n, &info); if(info != 0){error("c++ error: dpotrf13 failed\n");}
+	       for(i = 0; i < n; i++) logDetCand += 2*log(C[i*n+i]);
+	       F77_NAME(dpotri)(lower, &n, C, &n, &info); if(info != 0){error("c++ error: dpotri failed\n");}
 
-         F77_NAME(dsymv)(lower, &n, &one, C, &n, tmp_n, &incOne, &zero, tmp_n2, &incOne);
-         logPostCand = -0.5*logDetCand-0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n2, &incOne);
+	       F77_NAME(dsymv)(lower, &n, &one, C, &n, tmp_n, &incOne, &zero, tmp_n2, &incOne);
+	       logPostCand = -0.5*logDetCand-0.5*F77_NAME(ddot)(&n, tmp_n, &incOne, tmp_n2, &incOne);
 
-         logPostCand += log(gamma[1] - phiUnif[t*2]) + log(phiUnif[t*2+1] - gamma[1]);
+	       logPostCand += log(gamma[1] - phiUnif[t*2]) + log(phiUnif[t*2+1] - gamma[1]);
 
-         logMHRatio = logPostCand - logPost;
+	       logMHRatio = logPostCand - logPost;
 
-         if(runif(0.0,1.0) <= exp(logMHRatio)){
+	       if(runif(0.0,1.0) <= exp(logMHRatio)){
 
-           tempphi = logit(gamma[1], phiUnif[t*2], phiUnif[t*2+1]);
-           accept++;
-           batchAccept++;
-          }
-        acceptmarkphi=0;
+	       	 tempphi = logit(gamma[1], phiUnif[t*2], phiUnif[t*2+1]);
+	       	 accept++;
+       	 	 batchAccept++;
+	       	}
+	     acceptmarkphi=0;
        if(((tempphi-theta[t*nTheta+phiIndx])*(tempphi-theta[t*nTheta+phiIndx]))>(radiusphi*radiusphi)){
               acceptmarkphi=1;
 
             } else {
-              if (runif(0.0,1.0)<prob){
-                acceptmarkphi=1;
-              } else{
-                acceptmarkphi=0;
-              }
+              acceptmarkphi=0;
             }
        }  while(acceptmarkphi==0);
 
@@ -826,8 +755,8 @@ extern "C" {
        //      }
        // }  while(acceptmarkphi==0);
 
-       //    theta[t*nTheta+phiIndx] = 1.0/tempphi;
-       //    accept++;
+       // 	 theta[t*nTheta+phiIndx] = 1.0/tempphi;
+       // 	 accept++;
        //   batchAccept++;
        //  }
        /************/
@@ -847,7 +776,7 @@ extern "C" {
 
      for(t = 1; t < Nt; t++){
        for(i = 0; i < p; i++){
-       tmp_p[i] = beta[p*t+i]-beta[p*(t-1)+i];
+     	 tmp_p[i] = beta[p*t+i]-beta[p*(t-1)+i];
        }
        F77_NAME(dgemm)(ntran, ytran, &p, &p, &incOne, &one, tmp_p, &p, tmp_p, &p, &one, tmp_pp, &p);
      }
@@ -860,29 +789,22 @@ extern "C" {
      double *tempsigmaEta = (double *) R_alloc(pp, sizeof(double));
      //double radiussigmaEta=171.67;
      //double radiussigmaEta=442.66;
-     //double radiussigmaEta=744.82*2;
-     double radiussigmaEta=REAL(radiussigmaEta_r)[0];
+     double radiussigmaEta=744.82*2;
      int acceptmarksigmaEta=0;
 
-     //printf("%f,\n",radiussigmaEta);
-
      do {
-      rwish(tmp_pp, SigmaEtaIW_df+Nt, p, tempsigmaEta, tmp_pp2, 1);
-      double sum=0;
+     	rwish(tmp_pp, SigmaEtaIW_df+Nt, p, tempsigmaEta, tmp_pp2, 1);
+     	int sum=0;
 
-      for (int dim=0; dim<pp; dim++){
-        sum=sum+(tempsigmaEta[dim]-sigmaEta[dim])*(tempsigmaEta[dim]-sigmaEta[dim]);
-      }
+     	for (int dim=0; dim<pp; dim++){
+     		sum=sum+(tempsigmaEta[dim]-sigmaEta[dim])*(tempsigmaEta[dim]-sigmaEta[dim]);
+     	}
 
-      acceptmarksigmaEta=0;
-      if (sum>(radiussigmaEta)){
+     	acceptmarksigmaEta=0;
+     	if (sum>(radiussigmaEta)){
               acceptmarksigmaEta=1;
             } else {
-              if (runif(0.0,1.0)<prob){
-                acceptmarksigmaEta=1;
-              } else{
-                acceptmarksigmaEta=0;
-              }
+              acceptmarksigmaEta=0;
             }
         //printf("%d,%d\n",acceptmarksigmaEta,sum);
      } while(acceptmarksigmaEta==0);
@@ -896,7 +818,7 @@ extern "C" {
 
      // for(i = 1; i < p; i++){
      //   for(j = 0; j < i; j++){
-     //    tmp_pp[i*p+j] = tmp_pp[j*p+i];
+     // 	 tmp_pp[i*p+j] = tmp_pp[j*p+i];
      //   }
      // }
      // riwishart(tmp_pp, SigmaEtaIW_df+Nt, p, C, C2, C3, sigmaEta);
@@ -907,15 +829,15 @@ extern "C" {
      //report
      if(verbose){
        if(status == nReport){
-   Rprintf("Sampled: %i of %i, %3.2f%%\n", s, nSamples, 100.0*s/nSamples);
-   Rprintf("Report interval Mean Metrop. Acceptance rate: %3.2f%%\n", 100.0*batchAccept/(nReport*Nt));
-   Rprintf("Overall Metrop. Acceptance rate: %3.2f%%\n", 100.0*accept/(s*Nt));
-   Rprintf("-------------------------------------------------\n");
+	 Rprintf("Sampled: %i of %i, %3.2f%%\n", s, nSamples, 100.0*s/nSamples);
+	 Rprintf("Report interval Mean Metrop. Acceptance rate: %3.2f%%\n", 100.0*batchAccept/(nReport*Nt));
+	 Rprintf("Overall Metrop. Acceptance rate: %3.2f%%\n", 100.0*accept/(s*Nt));
+	 Rprintf("-------------------------------------------------\n");
          #ifdef Win32
-   R_FlushConsole();
+	 R_FlushConsole();
          #endif
-   status = 0;
-   batchAccept = 0;
+	 status = 0;
+	 batchAccept = 0;
        }
      }
      status++;
@@ -927,11 +849,11 @@ extern "C" {
     //untransform variance variables
     for(s = 0; s < nSamples; s++){
       for(t = 0; t < Nt; t++){
-      thetaSamples[s*NtnTheta+t*nTheta+phiIndx] = logitInv(thetaSamples[s*NtnTheta+t*nTheta+phiIndx], phiUnif[t*2], phiUnif[t*2+1]);
+    	thetaSamples[s*NtnTheta+t*nTheta+phiIndx] = logitInv(thetaSamples[s*NtnTheta+t*nTheta+phiIndx], phiUnif[t*2], phiUnif[t*2+1]);
 
-      if(covModel == "matern"){
-    thetaSamples[s*NtnTheta+t*nTheta+nuIndx] = logitInv(thetaSamples[s*NtnTheta+t*nTheta+nuIndx], nuUnif[t*2], nuUnif[t*2+1]);
-      }
+    	if(covModel == "matern"){
+	  thetaSamples[s*NtnTheta+t*nTheta+nuIndx] = logitInv(thetaSamples[s*NtnTheta+t*nTheta+nuIndx], nuUnif[t*2], nuUnif[t*2+1]);
+    	}
       }
     }
 
